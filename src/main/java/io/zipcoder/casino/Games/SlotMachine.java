@@ -21,7 +21,8 @@ public class SlotMachine extends SunhyunsGamblingGameClass {
             " \\______/ |__/  |__/ \\______/ |__/  \\__/|__/       \\______/    |__/   |__/|__/|__/\n" +
             "                                                                                  \n" +
             "                                                                                  \n" +
-            "                                                                                  " + AnsiStuff.ANSI_RESET;;
+            "                                                                                  " + AnsiStuff.ANSI_RESET;
+    ;
 
     private static final String DIAGONAL_DISPLAY = AnsiStuff.ANSI_GREEN + " /$$$$$$$  /$$                                                   /$$ /$$\n" +
             "| $$__  $$|__/                                                  | $$| $$\n" +
@@ -49,6 +50,7 @@ public class SlotMachine extends SunhyunsGamblingGameClass {
 
     /**
      * Standard constructor, sets currentGuest to guest, sets slotReel to new SlotReel
+     *
      * @param guest guest who is playing the game
      */
     public SlotMachine(Guest guest) {
@@ -58,7 +60,8 @@ public class SlotMachine extends SunhyunsGamblingGameClass {
 
     /**
      * For testing purposes
-     * @param testGuest test guest
+     *
+     * @param testGuest    test guest
      * @param testSlotReel seeded slotReel with predictable output
      */
     SlotMachine(Guest testGuest, SlotReel testSlotReel) {
@@ -69,33 +72,23 @@ public class SlotMachine extends SunhyunsGamblingGameClass {
 
     public void playFullGame() {
         displayWelcome();
-
         println("The minimum bet is $%d.", minimumBet);
-
         if (yesOrNoQuestion("Would you like to read the instructions? (yes or no):")) {
             printInstructions();
         }
-
         boolean continuePlaying = yesOrNoQuestion("Would you like to start playing the Slot Machine? (yes or no):");
-
         while (continuePlaying) {
             setup();
-
             if (currentGuest.getAccountBalance() < minimumBet) {
                 println("Sorry, you do not have enough money to play the Slot Machine.\n" +
                         "The minimum bet is $%d, and your current balance is $%.2f.", minimumBet, currentGuest.getAccountBalance());
                 break;
             }
-
             Double currentBet = takeBetFromPlayer();
-
             useTheSlots();
-
             payOut(currentBet);
-
             continuePlaying = yesOrNoQuestion("\nWould you like to play again? (yes or no):");
         }
-
         println("\nWe hope you enjoyed your visit to the Slot Machine!");
     }
 
@@ -115,32 +108,37 @@ public class SlotMachine extends SunhyunsGamblingGameClass {
     void useTheSlots() {
         int[] slotResults = slotReel.getSlotReelResultsAndDisplayRepresentation(3);
         checkReelResults(slotResults);
+        displayReelResults();
     }
 
     /**
      * This method checks the results of the slot machine spin, and sets the various win conditions accordingly
+     *
      * @param slotResults the results of the slot machine spin
      */
     void checkReelResults(int[] slotResults) {
-        boolean jackpotBoolean = slotResults[0] == slotResults[1] && slotResults[1] == slotResults[2];
+        jackpot = slotResults[0] == slotResults[1] && slotResults[1] == slotResults[2];
 
-        boolean upwardsDiagonal = ((slotResults[0] == slotResults[1] - 1) || (slotResults[0] == 9 && slotResults[1] == 0)) && ((slotResults[1] == slotResults[2] - 1) || (slotResults[1] == 9 && slotResults[2] == 0));
-        boolean downwardsDiagonal = ((slotResults[0] == slotResults[1] + 1) || (slotResults[0] == 0 && slotResults[1] == 9)) && ((slotResults[1] == slotResults[2] + 1) || (slotResults[1] == 0 && slotResults[2] == 9));
-        boolean diagonalBoolean = upwardsDiagonal || downwardsDiagonal;
+        boolean upwardsDiagonal = ((slotResults[0] == slotResults[1] - 1) || (slotResults[0] == 9 && slotResults[1] == 0)) &&
+                ((slotResults[1] == slotResults[2] - 1) || (slotResults[1] == 9 && slotResults[2] == 0));
+        boolean downwardsDiagonal = ((slotResults[0] == slotResults[1] + 1) || (slotResults[0] == 0 && slotResults[1] == 9)) &&
+                ((slotResults[1] == slotResults[2] + 1) || (slotResults[1] == 0 && slotResults[2] == 9));
+        diagonal = upwardsDiagonal || downwardsDiagonal;
 
-        boolean zigZag0And1 = ((Math.abs(slotResults[0] % 9 - slotResults[1] % 9) == 0) || (Math.abs(slotResults[0] - slotResults[1]) <= 1));
-        boolean zigZag1And2 = ((Math.abs(slotResults[1] % 9 - slotResults[2] % 9) == 0) || (Math.abs(slotResults[1] - slotResults[2]) <= 1));
-        boolean zigZagBoolean = zigZag0And1 && zigZag1And2;
+        boolean zigZag0And1 = ((slotResults[0] % 9) == (slotResults[1] % 9) ||
+                (Math.abs(slotResults[0] - slotResults[1]) <= 1));
+        boolean zigZag1And2 = ((slotResults[1] % 9) == (slotResults[2] % 9) ||
+                (Math.abs(slotResults[1] - slotResults[2]) <= 1));
+        zigZag = zigZag0And1 && zigZag1And2;
+    }
 
-        if (jackpotBoolean) {
+    private void displayReelResults() {
+        if (jackpot) {
             Casino.console.println(JACKPOT_DISPLAY + '\n');
-            jackpot = true;
-        } else if (diagonalBoolean) {
+        } else if (diagonal) {
             Casino.console.println(DIAGONAL_DISPLAY + '\n');
-            diagonal = true;
-        } else if (zigZagBoolean) {
+        } else if (zigZag) {
             Casino.console.println(ZIG_ZAG_DISPLAY + '\n');
-            zigZag = true;
         } else {
             Casino.console.println("Sorry, no Lines...\n");
         }
@@ -156,7 +154,7 @@ public class SlotMachine extends SunhyunsGamblingGameClass {
      * @param currentBet the amount the player bet on the preceding game
      */
     void payOut(Double currentBet) {
-        if(jackpot) {
+        if (jackpot) {
             this.currentGuest.addFunds(currentBet * 51);
             println("You won $%.2f!\nYour balance is now $%.2f.", currentBet * 50, this.currentGuest.getAccountBalance());
         } else if (diagonal) {
@@ -217,6 +215,7 @@ public class SlotMachine extends SunhyunsGamblingGameClass {
     SlotReel getSlotReel() {
         return slotReel;
     }
+
     /**
      * For testing purposes
      */

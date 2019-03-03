@@ -44,16 +44,20 @@ public class Craps extends SunhyunsGamblingGameClass {
      * they would like to play again.
      */
     public void playFullGame() {
-        displayWelcome();
-
-        println("\nThe minimum bet is $%d.", minimumBet);
-
-        if (yesOrNoQuestion("Would you like to read the instructions? (yes or no):")) {
-            printInstructions();
-        }
+        displayWelcomeAndInstructions();
 
         boolean continuePlaying = yesOrNoQuestion("Would you like to start playing Craps? (yes or no):");
 
+        playCraps(continuePlaying);
+
+        println("\nWe hope you enjoyed your visit to the Craps table!");
+    }
+
+    /**
+     *
+     * @param continuePlaying
+     */
+    private void playCraps(boolean continuePlaying) {
         while (continuePlaying) {
             if (currentGuest.getAccountBalance() < minimumBet) {
                 println("Sorry, you do not have enough money to play Craps.\n" +
@@ -70,8 +74,19 @@ public class Craps extends SunhyunsGamblingGameClass {
 
             continuePlaying = yesOrNoQuestion("\nWould you like to play again? (yes or no):");
         }
+    }
 
-        println("\nWe hope you enjoyed your visit to the Craps table!");
+    /**
+     *
+     */
+    private void displayWelcomeAndInstructions() {
+        displayWelcome();
+
+        println("\nThe minimum bet is $%d.", minimumBet);
+
+        if (yesOrNoQuestion("Would you like to read the instructions? (yes or no):")) {
+            printInstructions();
+        }
     }
 
     /**
